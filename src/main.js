@@ -5,12 +5,30 @@ const addTodo = document.querySelector("#add-button");
 
 addTodo.addEventListener("click", (e) => {
   if (todoInput.value) {
-    const date = formatDate(new Date());
-    const priority = priorities.options[priorities.selectedIndex].text;
-    const todo = document.createElement("li");
-    todo.textContent = `${date} ${priority} ${todoInput.value}`;
+    const listItem = document.createElement("li");
+
+    const todoContainer = document.createElement("div");
+    todoContainer.classList.add("todo-container");
+
+    const todoCreatedAt = document.createElement("div");
+    todoCreatedAt.classList.add("todo-created-at");
+    todoCreatedAt.textContent = formatDate(new Date());
+    todoContainer.appendChild(todoCreatedAt);
+
+    const todoPriority = document.createElement("div");
+    todoPriority.classList.add("todo-priority");
+    todoPriority.textContent = priorities.value;
+    todoContainer.appendChild(todoPriority);
+
+    const todoText = document.createElement("div");
+    todoText.classList.add("todo-text");
+    todoText.textContent = todoInput.value;
+    todoContainer.appendChild(todoText);
+
     todoInput.value = "";
-    todoList.appendChild(todo);
+    todoInput.focus();
+    listItem.appendChild(todoContainer);
+    todoList.appendChild(listItem);
   }
 });
 
@@ -26,5 +44,5 @@ todoInput.addEventListener("keyup", (e) => {
 const formatDate = (date) => {
   const month = date.getMonth() < 10 ? "0" + (date.getMonth() + 1) : date.getMonth();
   const day = date.getDate() < 10 ? "0" + (date.getDate() + 1) : date.getDate();
-  return `${date.getFullYear()}-${month}-${day}`;
+  return `${date.getFullYear()}-${month}-${day} ${date.getHours()}:${date.getMinutes()}`;
 }
