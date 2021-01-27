@@ -3,6 +3,8 @@ const todoInput = document.querySelector("#text-input");
 const priorities = document.querySelector("#priority-selector");
 const addTodo = document.querySelector("#add-button");
 
+const counter = document.querySelector("#counter");
+
 addTodo.addEventListener("click", (e) => {
   if (todoInput.value) {
     const listItem = document.createElement("li");
@@ -25,6 +27,8 @@ addTodo.addEventListener("click", (e) => {
     todoText.textContent = todoInput.value;
     todoContainer.appendChild(todoText);
 
+    counter.textContent++;
+
     todoInput.value = "";
     todoInput.focus();
     listItem.appendChild(todoContainer);
@@ -44,5 +48,7 @@ todoInput.addEventListener("keyup", (e) => {
 const formatDate = (date) => {
   const month = date.getMonth() < 10 ? "0" + (date.getMonth() + 1) : date.getMonth();
   const day = date.getDate() < 10 ? "0" + (date.getDate() + 1) : date.getDate();
-  return `${date.getFullYear()}-${month}-${day} ${date.getHours()}:${date.getMinutes()}`;
+  const hour = date.getHours() < 10 ? "0" + (date.getHours() + 1) : date.getHours();
+  const minute = date.getMinutes() < 10 ? "0" + (date.getMinutes() + 1) : date.getMinutes();
+  return `${date.getFullYear()}-${month}-${day} ${hour}:${minute}`;
 }
