@@ -4,6 +4,7 @@ const todoInput = document.querySelector("#text-input");
 const priorities = document.querySelector("#priority-selector");
 const todoButton = document.querySelector("#add-button");
 
+const loading = document.querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
 const sortButton = document.querySelector("#sort-button");
 
@@ -38,9 +39,11 @@ const addTodo = (date, priority, text) => {
 // Get todos when the page loads
 window.addEventListener("load", async () => {
   container.style.display = "none";
+  loading.style.display = "inline-block";
 
   todos = await getPersistent();
 
+  loading.style.display = "none";
   container.style.display = "block";
 
   console.log(todos);
