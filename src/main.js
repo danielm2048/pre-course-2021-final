@@ -1,45 +1,13 @@
+const container = document.querySelector(".main");
 let todoList = document.querySelector("#todo-list");
 const todoInput = document.querySelector("#text-input");
 const priorities = document.querySelector("#priority-selector");
 const todoButton = document.querySelector("#add-button");
-const todos = [];
 
 const counter = document.querySelector("#counter");
 const sortButton = document.querySelector("#sort-button");
 
-todoButton.addEventListener("click", () => {
-  if (todoInput.value) {
-
-    const todoCreatedAt = formatDate(new Date());
-    const todoPriority = priorities.value;
-    const todoText = todoInput.value;
-
-    todoList.appendChild(addTodo(todoCreatedAt, todoPriority, todoText));
-
-    todos.push({
-      todoCreatedAt,
-      todoPriority,
-      todoText
-    });
-
-    counter.textContent++;
-
-    todoInput.value = "";
-    todoInput.focus();
-  }
-});
-
-// Execute onClick button function when the user releases the enter key
-todoInput.addEventListener("keyup", (e) => {
-  if (e.code === "Enter" || e.code === "NumpadEnter") {
-    e.preventDefault();
-    todoButton.click();
-  }
-});
-
-sortButton.addEventListener("click", () => {
-  sortList("todoPriority");
-})
+let todos = [];
 
 // This function creates a list item and returns it
 const addTodo = (date, priority, text) => {
@@ -67,6 +35,58 @@ const addTodo = (date, priority, text) => {
   return listItem;
 }
 
+// Get todos when the page loads
+window.addEventListener("load", async () => {
+  container.style.display = "none";
+
+  todos = await getPersistent();
+
+  container.style.display = "block";
+
+  console.log(todos);
+  todos.forEach(todo => {
+    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text));
+  });
+
+  counter.textContent = todos.length;
+});
+
+todoButton.addEventListener("click", async () => {
+  if (todoInput.value) {
+
+    const date = formatDate(new Date());
+    const priority = priorities.value;
+    const text = todoInput.value;
+
+    todoList.appendChild(addTodo(date, priority, text));
+
+    todos.push({
+      date,
+      priority,
+      text
+    });
+
+    counter.textContent++;
+
+    todoInput.value = "";
+    todoInput.focus();
+
+    await setPersistent(todos);
+  }
+});
+
+// Execute onClick button function when the user releases the enter key
+todoInput.addEventListener("keyup", (e) => {
+  if (e.code === "Enter" || e.code === "NumpadEnter") {
+    e.preventDefault();
+    todoButton.click();
+  }
+});
+
+sortButton.addEventListener("click", () => {
+  sortList("priority");
+})
+
 // A function to sort todo list by property
 const sortList = (prop) => {
   const parent = todoList.parentNode;
@@ -78,7 +98,7 @@ const sortList = (prop) => {
   });
 
   todos.forEach(todo => {
-    todoList.appendChild(addTodo(todo.todoCreatedAt, todo.todoPriority, todo.todoText));
+    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text));
   });
 
   parent.appendChild(todoList);
