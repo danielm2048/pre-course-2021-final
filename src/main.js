@@ -39,7 +39,6 @@ const addTodo = (date, priority, text) => {
 // Get todos when the page loads
 window.addEventListener("load", async () => {
   container.style.display = "none";
-  loading.style.display = "inline-block";
 
   todos = await getPersistent();
 

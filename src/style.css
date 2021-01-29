@@ -1,9 +1,19 @@
 body {
+	margin: 0;
+	padding: 0;
 	background-color: hsl(207deg, 96%, 68%);
 }
 
+.container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	min-height: 95vh;
+}
+
 .lds-roller {
-	display: none;
 	position: relative;
 	width: 80px;
 	height: 80px;
