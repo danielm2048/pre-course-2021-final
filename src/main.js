@@ -1,5 +1,5 @@
 const container = document.querySelector(".main");
-let todoList = document.querySelector("#todo-list");
+const todoList = document.querySelector("#todo-list");
 const todoInput = document.querySelector("#text-input");
 const priorities = document.querySelector("#priority-selector");
 const todoButton = document.querySelector("#add-button");
@@ -94,19 +94,17 @@ sortButton.addEventListener("click", () => {
 
 // A function to sort todo list by property
 const sortList = (prop) => {
-  const parent = todoList.parentNode;
-  parent.removeChild(todoList);
-  todoList = document.createElement("ul");
+  let sortedList = todoList.cloneNode(false);
 
   todos.sort((a, b) => {
     return b[prop] - a[prop];
   });
 
   todos.forEach((todo, index) => {
-    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text, index));
+    sortedList.appendChild(addTodo(todo.date, todo.priority, todo.text, index));
   });
 
-  parent.appendChild(todoList);
+  todoList.parentNode.replaceChild(sortedList, todoList);
 }
 
 // A function to format dates in SQL format
