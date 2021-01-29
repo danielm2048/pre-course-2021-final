@@ -1,7 +1,10 @@
 body {
 	margin: 0;
 	padding: 0;
-	background-color: hsl(207deg, 96%, 68%);
+	background: #5fb6fc;
+	background: -webkit-linear-gradient(top, #5fb6fc, #3d88ee);
+	background: -moz-linear-gradient(top, #5fb6fc, #3d88ee);
+	background: linear-gradient(to bottom, #5fb6fc, #3d88ee);
 }
 
 .container {
@@ -10,7 +13,99 @@ body {
 	justify-content: center;
 	align-items: center;
 	text-align: center;
-	min-height: 95vh;
+	min-height: 100vh;
+}
+
+.main {
+	background: #fcfdfd;
+	background: -webkit-linear-gradient(top, #fcfdfd, #f1f4f6);
+	background: -moz-linear-gradient(top, #fcfdfd, #f1f4f6);
+	background: linear-gradient(to bottom, #fcfdfd, #f1f4f6);
+	border-radius: 10px;
+	padding: 40px 20px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#view-section {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+	/* overflow: scroll; */
+}
+
+#todo-list {
+	list-style: none;
+	width: 100%;
+	padding: 0;
+}
+
+.todo-container {
+	position: relative;
+	display: flex;
+	align-items: space-between;
+	padding: 12px;
+	margin: 10px auto;
+	border-radius: 20px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.todo-priority {
+	margin: 0 20px;
+}
+
+.todo-check {
+	position: absolute;
+	right: 15px;
+}
+
+.todo-check .button {
+	position: relative;
+	z-index: 2;
+	box-sizing: border-box;
+	float: right;
+	width: 20px;
+	height: 20px;
+	border: 1px solid rgba(100, 58, 122, 0.5);
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.todo-check .checkmark {
+	position: absolute;
+	display: block;
+	opacity: 0;
+	stroke: rgba(55, 215, 178, 0.5);
+	fill: none;
+	stroke-dashoffset: 340;
+	stroke-dasharray: 360;
+}
+
+.todo-check input {
+	display: none;
+}
+
+.todo-check .wrapper {
+	position: absolute;
+	width: 20px;
+}
+
+.todo-check input:checked ~ .wrapper .checkmark {
+	animation: dash 0.5s ease-out forwards;
+	opacity: 1;
+}
+.todo-check input:checked ~ .button {
+	opacity: 0;
+}
+
+@keyframes dash {
+	0% {
+		stroke-dashoffset: 340;
+	}
+	100% {
+		stroke-dashoffset: 0;
+	}
 }
 
 .lds-roller {
