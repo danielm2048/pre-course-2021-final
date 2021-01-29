@@ -5,6 +5,7 @@ body {
 	background: -webkit-linear-gradient(top, #5fb6fc, #3d88ee);
 	background: -moz-linear-gradient(top, #5fb6fc, #3d88ee);
 	background: linear-gradient(to bottom, #5fb6fc, #3d88ee);
+	font-family: "Poppins", sans-serif;
 }
 
 .container {
