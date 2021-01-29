@@ -4,7 +4,7 @@ const DB_NAME = "my-todo";
 
 // Gets data from persistent storage by the given key and returns it
 async function getPersistent(key = API_KEY) {
-  const response = await fetch(API, {
+  const response = await fetch(`${API}/latest`, {
     headers: {
       "Content-Type": "application/json",
       "X-Master-Key": key
@@ -28,7 +28,7 @@ async function setPersistent(data, key = API_KEY) {
       "Content-Type": "application/json",
       "X-Master-Key": key
     },
-    body: { "my-data": JSON.stringify(data) }
+    body: JSON.stringify({ "my-todo": data })
   });
   if (response.ok) {
     return true;
