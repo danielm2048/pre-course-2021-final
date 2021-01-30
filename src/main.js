@@ -6,12 +6,12 @@ const todoButton = document.querySelector("#add-button");
 
 const loading = document.querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
-const sortButton = document.querySelector("#sort-button");
+const sortButtons = document.querySelector(".sort-buttons");
 
 let todos = [];
 
 // This function creates a list item and returns it
-const addTodo = (date, priority, text, done = false, index) => {
+const addTodo = (dateString, priority, text, done = false, index) => {
   const listItem = document.createElement("li");
 
   const todoContainer = document.createElement("div");
@@ -19,7 +19,7 @@ const addTodo = (date, priority, text, done = false, index) => {
 
   const todoCreatedAt = document.createElement("div");
   todoCreatedAt.classList.add("todo-created-at");
-  todoCreatedAt.textContent = date;
+  todoCreatedAt.textContent = dateString;
   todoContainer.appendChild(todoCreatedAt);
 
   const todoPriority = document.createElement("div");
@@ -31,6 +31,17 @@ const addTodo = (date, priority, text, done = false, index) => {
   todoText.classList.add("todo-text");
   todoText.textContent = text;
   todoContainer.appendChild(todoText);
+
+  if (done) {
+    todoCreatedAt.classList.add("dimmed");
+    todoPriority.classList.add("dimmed");
+    todoText.classList.add("crossed", "dimmed");
+  }
+  else {
+    todoCreatedAt.classList.remove("dimmed");
+    todoPriority.classList.remove("dimmed");
+    todoText.classList.remove("crossed", "dimmed");
+  }
 
   const todoCheck = createCheckmark(done, index);
   todoCheck.classList.add("todo-check");
@@ -50,7 +61,7 @@ window.addEventListener("load", async () => {
   container.style.display = "block";
 
   todos.forEach((todo, index) => {
-    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text, todo.done, index));
+    todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
   });
 
   counter.textContent = todos.length;
@@ -59,14 +70,16 @@ window.addEventListener("load", async () => {
 todoButton.addEventListener("click", async () => {
   if (todoInput.value) {
 
-    const date = formatDate(new Date());
+    const date = new Date();
+    const dateString = formatDate(date);
     const priority = priorities.value;
     const text = todoInput.value;
 
-    todoList.appendChild(addTodo(date, priority, text));
+    todoList.appendChild(addTodo(dateString, priority, text));
 
     todos.push({
       date,
+      dateString,
       priority,
       text,
       done: false
@@ -89,23 +102,34 @@ todoInput.addEventListener("keyup", (e) => {
   }
 });
 
-sortButton.addEventListener("click", () => {
-  sortList("priority");
+sortButtons.addEventListener("click", (e) => {
+  const prop = e.target.dataset.prop;
+  if (prop) {
+    // Priority sort needs to be in DESC order
+    sortList(prop, prop !== "priority");
+  }
 })
 
 // A function to sort todo list by property
-const sortList = (prop) => {
-  let sortedList = todoList.cloneNode(false);
+// Direction is DESC for false, ASC for true 
+const sortList = (prop, direction = false) => {
+  while (todoList.hasChildNodes()) {
+    todoList.removeChild(todoList.lastChild);
+  }
+
+  if (prop === "date") {
+    todos.sort((a, b) => {
+      return direction ? new Date(a[prop]) - new Date(b[prop]) : new Date(b[prop]) - new Date(a[prop]);
+    });
+  }
 
   todos.sort((a, b) => {
-    return b[prop] - a[prop];
+    return direction ? a[prop] - b[prop] : b[prop] - a[prop];
   });
 
   todos.forEach((todo, index) => {
-    sortedList.appendChild(addTodo(todo.date, todo.priority, todo.text, todo.done, index));
+    todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
   });
-
-  todoList.parentNode.replaceChild(sortedList, todoList);
 }
 
 const toggleDone = async (index) => {
@@ -115,8 +139,24 @@ const toggleDone = async (index) => {
 }
 
 todoList.addEventListener("change", async (e) => {
-  if (e.target.dataset.index) {
-    await toggleDone(e.target.dataset.index);
+  const index = e.target.dataset.index
+  if (index) {
+    e.target.disabled = true;
+
+    if (e.target.checked) {
+      document.querySelectorAll(".todo-created-at")[index].classList.add("dimmed");
+      document.querySelectorAll(".todo-priority")[index].classList.add("dimmed");
+      document.querySelectorAll(".todo-text")[index].classList.add("crossed", "dimmed");
+    }
+    else {
+      document.querySelectorAll(".todo-created-at")[index].classList.remove("dimmed");
+      document.querySelectorAll(".todo-priority")[index].classList.remove("dimmed");
+      document.querySelectorAll(".todo-text")[index].classList.remove("crossed", "dimmed");
+    }
+
+    await toggleDone(index);
+
+    e.target.disabled = false;
   }
 })
 
