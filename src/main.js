@@ -11,7 +11,7 @@ const sortButton = document.querySelector("#sort-button");
 let todos = [];
 
 // This function creates a list item and returns it
-const addTodo = (date, priority, text, index) => {
+const addTodo = (date, priority, text, done = false, index) => {
   const listItem = document.createElement("li");
 
   const todoContainer = document.createElement("div");
@@ -32,7 +32,7 @@ const addTodo = (date, priority, text, index) => {
   todoText.textContent = text;
   todoContainer.appendChild(todoText);
 
-  const todoCheck = createCheckmark(index);
+  const todoCheck = createCheckmark(done, index);
   todoCheck.classList.add("todo-check");
   todoContainer.appendChild(todoCheck);
 
@@ -50,7 +50,7 @@ window.addEventListener("load", async () => {
   container.style.display = "block";
 
   todos.forEach((todo, index) => {
-    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text, index));
+    todoList.appendChild(addTodo(todo.date, todo.priority, todo.text, todo.done, index));
   });
 
   counter.textContent = todos.length;
@@ -68,7 +68,8 @@ todoButton.addEventListener("click", async () => {
     todos.push({
       date,
       priority,
-      text
+      text,
+      done: false
     });
 
     counter.textContent++;
@@ -101,11 +102,23 @@ const sortList = (prop) => {
   });
 
   todos.forEach((todo, index) => {
-    sortedList.appendChild(addTodo(todo.date, todo.priority, todo.text, index));
+    sortedList.appendChild(addTodo(todo.date, todo.priority, todo.text, todo.done, index));
   });
 
   todoList.parentNode.replaceChild(sortedList, todoList);
 }
+
+const toggleDone = async (index) => {
+  todos[index].done = !todos[index].done;
+
+  await setPersistent(todos);
+}
+
+todoList.addEventListener("change", async (e) => {
+  if (e.target.dataset.index) {
+    await toggleDone(e.target.dataset.index);
+  }
+})
 
 // A function to format dates in SQL format
 const formatDate = (date) => {
@@ -117,7 +130,7 @@ const formatDate = (date) => {
 }
 
 // A function for creating a checkmark
-const createCheckmark = (index) => {
+const createCheckmark = (done, index) => {
   const todoCheck = document.createElement("div");
   const checkBox = document.createElement("input");
   const checkBoxLabel = document.createElement("label");
@@ -127,6 +140,8 @@ const createCheckmark = (index) => {
 
   checkBox.setAttribute("type", "checkbox");
   checkBox.setAttribute("id", `item-${index}`);
+  checkBox.setAttribute("data-index", index);
+  checkBox.checked = done;
 
   checkBoxLabel.setAttribute("for", `item-${index}`);
   checkBoxLabel.classList.add("button");
