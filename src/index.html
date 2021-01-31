@@ -24,7 +24,20 @@
       </div>
   
       <div class="main">
-        <h1>TODO List</h1>
+        <div class="title">
+          <h1>TODO List</h1>
+
+          <div class="lds-roller">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
         <section id="control-section">
           <div class="actions">
             <div id="counter">0</div>
@@ -47,8 +60,11 @@
             <option value="4">Put it on the back burner</option>
             <option value="5">Not that important</option>
           </select>
-  
+          
+
           <button id="add-button">Add To Do</button>
+          <button id="update-button">Update To Do</button>
+          <button id="delete-button">Delete All</button>
         </section>
   
         <section id="view-section">

@@ -37,3 +37,17 @@ async function setPersistent(data, key = API_KEY) {
     console.log(response.text())
   }
 }
+
+// A function for handling the wair for setPersistent
+async function waitForPersistent() {
+  // Loader next to title
+  const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
+
+  document.querySelectorAll("button").disabled = true;
+  loaderTitle.style.display = "inline-block";
+
+  await setPersistent(todos);
+
+  loaderTitle.style.display = "none";
+  document.querySelectorAll("button").disabled = false;
+}

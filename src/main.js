@@ -2,20 +2,25 @@ const container = document.querySelector(".main");
 const todoList = document.querySelector("#todo-list");
 const todoInput = document.querySelector("#text-input");
 const priorities = document.querySelector("#priority-selector");
-const todoButton = document.querySelector("#add-button");
+
+const addButton = document.querySelector("#add-button");
+const updateButton = document.querySelector("#update-button");
+const deleteButton = document.querySelector("#delete-button");
 
 const loading = document.querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
 const sortButtons = document.querySelector(".sort-buttons");
 
 let todos = [];
+let selectedTodo = null;
 
 // This function creates a list item and returns it
-const addTodo = (dateString, priority, text, done = false, index) => {
+const addTodo = (dateString, priority, text, done = false, index = todos.length) => {
   const listItem = document.createElement("li");
 
   const todoContainer = document.createElement("div");
   todoContainer.classList.add("todo-container");
+  todoContainer.setAttribute("id", index);
 
   const todoCreatedAt = document.createElement("div");
   todoCreatedAt.classList.add("todo-created-at");
@@ -67,15 +72,13 @@ window.addEventListener("load", async () => {
   counter.textContent = todos.length;
 });
 
-todoButton.addEventListener("click", async () => {
+addButton.addEventListener("click", async () => {
   if (todoInput.value) {
 
     const date = new Date();
     const dateString = formatDate(date);
     const priority = priorities.value;
     const text = todoInput.value;
-
-    todoList.appendChild(addTodo(dateString, priority, text));
 
     todos.push({
       date,
@@ -90,15 +93,126 @@ todoButton.addEventListener("click", async () => {
     todoInput.value = "";
     todoInput.focus();
 
-    await setPersistent(todos);
+    await waitForPersistent();
+    todoList.appendChild(addTodo(dateString, priority, text));
   }
 });
+
+updateButton.addEventListener("click", async () => {
+  const priority = priorities.value;
+  const text = todoInput.value;
+
+  await updateTodo(priority, text);
+
+  todoInput.value = "";
+  todoInput.focus();
+});
+
+deleteButton.addEventListener("click", async (e) => {
+  const answer = confirm("Are you sure you want to delete?");
+
+  if (answer) {
+    await deleteTodo(selectedTodo ? selectedTodo[1] : selectedTodo);
+
+    counter.textContent = todos.length;
+  }
+})
+
+// A function for double clicking a todo from the list
+const toggleDoubleClick = (e) => {
+  if (e.target.className === "todo-container" || e.target.parentNode.className === "todo-container") {
+    const todoContainer = e.target.className === "todo-container" ? e.target : e.target.parentNode;
+    if (selectedTodo) {
+      selectedTodo[0].style.backgroundPosition = "0 -100%";
+
+      if (selectedTodo[1] !== todoContainer.id) {
+        todoContainer.style.backgroundPosition = "80% 100%";
+
+        document.querySelector("#add-button").style.display = "none";
+        document.querySelector("#update-button").style.display = "inline-block";
+        document.querySelector("#delete-button").textContent = "Delete Todo";
+
+        selectedTodo = [todoContainer, todoContainer.id];
+      }
+      else {
+        document.querySelector("#add-button").style.display = "inline-block";
+        document.querySelector("#update-button").style.display = "none";
+        document.querySelector("#delete-button").textContent = "Delete All";
+
+        selectedTodo = null;
+      }
+    }
+    else {
+      todoContainer.style.backgroundPosition = "80% 100%";
+
+      document.querySelector("#add-button").style.display = "none";
+      document.querySelector("#update-button").style.display = "inline-block";
+      document.querySelector("#delete-button").textContent = "Delete Todo";
+
+      selectedTodo = [todoContainer, todoContainer.id];
+    }
+  }
+}
+
+todoList.addEventListener("dblclick", toggleDoubleClick);
+
+// A function to update a todo from the list and from the array
+const updateTodo = async (priority, text) => {
+  todos[selectedTodo[1]].priority = priority;
+  if (text) {
+    todos[selectedTodo[1]].text = text;
+  }
+
+  await waitForPersistent();
+
+  selectedTodo[0].querySelector(".todo-priority").textContent = priority;
+  if (text) {
+    selectedTodo[0].querySelector(".todo-text").textContent = text;
+  }
+  selectedTodo[0].style.backgroundPosition = "0 -100%";
+
+  document.querySelector("#add-button").style.display = "inline-block";
+  document.querySelector("#update-button").style.display = "none";
+  document.querySelector("#delete-button").textContent = "Delete All";
+
+  selectedTodo = null;
+}
+
+// A function to delete a todo from the list and from the array
+const deleteTodo = async (index) => {
+  if (!index) {
+    todos = [];
+
+    while (todoList.hasChildNodes()) {
+      todoList.removeChild(todoList.lastChild);
+    }
+  }
+  else {
+    todos.splice(index, 1);
+
+    todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
+  }
+
+  await waitForPersistent();
+
+  document.querySelector("#add-button").style.display = "inline-block";
+  document.querySelector("#update-button").style.display = "none";
+  document.querySelector("#delete-button").textContent = "Delete All";
+
+  selectedTodo = null;
+};
 
 // Execute onClick button function when the user releases the enter key
 todoInput.addEventListener("keyup", (e) => {
   if (e.code === "Enter" || e.code === "NumpadEnter") {
     e.preventDefault();
-    todoButton.click();
+
+    if (selectedTodo) {
+      updateButton.click();
+    }
+    else {
+      addButton.click();
+    }
   }
 });
 
@@ -139,7 +253,7 @@ const toggleDone = async (index) => {
 }
 
 todoList.addEventListener("change", async (e) => {
-  const index = e.target.dataset.index
+  const index = e.target.dataset.index;
   if (index) {
     e.target.disabled = true;
 
@@ -158,14 +272,14 @@ todoList.addEventListener("change", async (e) => {
 
     e.target.disabled = false;
   }
-})
+});
 
 // A function to format dates in SQL format
 const formatDate = (date) => {
-  const month = date.getMonth() < 10 ? "0" + (date.getMonth() + 1) : date.getMonth();
-  const day = date.getDate() < 10 ? "0" + (date.getDate() + 1) : date.getDate();
-  const hour = date.getHours() < 10 ? "0" + (date.getHours() + 1) : date.getHours();
-  const minute = date.getMinutes() < 10 ? "0" + (date.getMinutes() + 1) : date.getMinutes();
+  const month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth();
+  const day = date.getDate() < 9 ? "0" + (date.getDate() + 1) : date.getDate();
+  const hour = date.getHours() < 9 ? "0" + (date.getHours() + 1) : date.getHours();
+  const minute = date.getMinutes() < 9 ? "0" + (date.getMinutes() + 1) : date.getMinutes();
   return `${date.getFullYear()}-${month}-${day} ${hour}:${minute}`;
 }
 

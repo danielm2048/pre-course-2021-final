@@ -18,6 +18,7 @@ body {
 }
 
 .main {
+	width: 50%;
 	background: #fcfdfd;
 	background: -webkit-linear-gradient(top, #fcfdfd, #f1f4f6);
 	background: -moz-linear-gradient(top, #fcfdfd, #f1f4f6);
@@ -29,6 +30,14 @@ body {
 
 #counter {
 	font-weight: 800;
+}
+
+#update-button {
+	display: none;
+}
+
+#cancel-button {
+	display: none;
 }
 
 #view-section {
@@ -54,9 +63,16 @@ body {
 	margin: 10px auto;
 	border-radius: 20px;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	background: transparent;
+	background-image: url(https://web.archive.org/web/20160312084140im_/http://splatoon.nintendo.com/assets/img/nav-bg-fill-blue.png?1443460871);
+	background-repeat: repeat-x;
+	background-position: 0 -100%;
+	transition: 1.3s ease-out;
+	filter: hue-rotate(320deg);
 }
 
 .todo-priority {
+	display: inline-block;
 	margin: 0 20px;
 }
 
@@ -105,7 +121,7 @@ body {
 	float: right;
 	width: 20px;
 	height: 20px;
-	border: 1px solid rgba(100, 58, 122, 0.5);
+	border: 1px solid rgba(0, 0, 0, 0.5);
 	border-radius: 50%;
 	cursor: pointer;
 }
@@ -228,4 +244,18 @@ body {
 	100% {
 		transform: rotate(360deg);
 	}
+}
+
+.title {
+	display: flex;
+	justify-content: center;
+}
+
+.title .lds-roller {
+	display: none;
+	margin-left: 20px;
+}
+
+.title .lds-roller div:after {
+	background: #5fb6fc;
 }
