@@ -42,11 +42,6 @@ const addTodo = (dateString, priority, text, done = false, index = todos.length)
     todoPriority.classList.add("dimmed");
     todoText.classList.add("crossed", "dimmed");
   }
-  else {
-    todoCreatedAt.classList.remove("dimmed");
-    todoPriority.classList.remove("dimmed");
-    todoText.classList.remove("crossed", "dimmed");
-  }
 
   const todoCheck = createCheckmark(done, index);
   todoCheck.classList.add("todo-check");
@@ -115,7 +110,7 @@ updateButton.addEventListener("click", async () => {
   todoInput.focus();
 });
 
-deleteButton.addEventListener("click", async (e) => {
+deleteButton.addEventListener("click", async () => {
   const answer = confirm("Are you sure you want to delete?");
 
   if (answer) {
@@ -167,6 +162,25 @@ const toggleDoubleClick = (e) => {
 
 todoList.addEventListener("dblclick", toggleDoubleClick);
 
+let touchStartTime = 0;
+todoList.addEventListener("touchstart", () => {
+  touchStartTime = new Date().getTime();
+});
+todoList.addEventListener("touchend", (e) => {
+  e.preventDefault();
+
+  if (e.target.classList.contains("button")) {
+    e.target.previousSibling.click();
+  }
+  else {
+    const touchEndTime = new Date().getTime();
+    if (touchEndTime - touchStartTime >= 500) {
+      toggleDoubleClick(e);
+    }
+    touchStartTime = 0;
+  }
+});
+
 // A function to update a todo from the list and from the array
 const updateTodo = async (priority, text) => {
   todos[selectedTodo[1]].priority = priority;
@@ -193,18 +207,21 @@ const updateTodo = async (priority, text) => {
 const deleteTodo = async (index) => {
   if (!index) {
     todos = [];
+  }
+  else {
+    todos.splice(index, 1);
+  }
 
+  await waitForPersistent();
+
+  if (!index) {
     while (todoList.hasChildNodes()) {
       todoList.removeChild(todoList.lastChild);
     }
   }
   else {
-    todos.splice(index, 1);
-
     todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
   }
-
-  await waitForPersistent();
 
   document.querySelector("#add-button").style.display = "inline-block";
   document.querySelector("#update-button").style.display = "none";
@@ -263,21 +280,15 @@ const toggleDone = async (index) => {
   await setPersistent(todos);
 }
 
-todoList.addEventListener("change", async (e) => {
+todoList.addEventListener("click", async (e) => {
   const index = e.target.dataset.index;
   if (index) {
     e.target.disabled = true;
 
-    if (e.target.checked) {
-      document.querySelectorAll(".todo-created-at")[index].classList.add("dimmed");
-      document.querySelectorAll(".todo-priority")[index].classList.add("dimmed");
-      document.querySelectorAll(".todo-text")[index].classList.add("crossed", "dimmed");
-    }
-    else {
-      document.querySelectorAll(".todo-created-at")[index].classList.remove("dimmed");
-      document.querySelectorAll(".todo-priority")[index].classList.remove("dimmed");
-      document.querySelectorAll(".todo-text")[index].classList.remove("crossed", "dimmed");
-    }
+    document.querySelectorAll(".todo-created-at")[index].classList.toggle("dimmed");
+    document.querySelectorAll(".todo-priority")[index].classList.toggle("dimmed");
+    document.querySelectorAll(".todo-text")[index].classList.toggle("crossed");
+    document.querySelectorAll(".todo-text")[index].classList.toggle("dimmed");
 
     await toggleDone(index);
 

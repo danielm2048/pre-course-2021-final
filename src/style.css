@@ -143,6 +143,30 @@ button {
 	filter: hue-rotate(320deg);
 }
 
+@media screen and (max-width: 768px) {
+	.main {
+		width: 100%;
+	}
+
+	button {
+		margin: 10px;
+		padding: 14px 12px;
+		font-size: 14px;
+	}
+
+	#priority-selector {
+		width: 25%;
+		padding: 14px 12px;
+		margin: 0 10px;
+		border-radius: 5px;
+		font-size: 14px;
+	}
+
+	#text-input {
+		font-size: 14px;
+	}
+}
+
 .todo-priority {
 	display: inline-block;
 	margin: 0 20px;
