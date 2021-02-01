@@ -39,12 +39,12 @@ async function setPersistent(data, key = API_KEY) {
 }
 
 // A function for handling the wair for setPersistent
-async function waitForPersistent() {
+async function waitForPersistent(showLoader = true) {
   // Loader next to title
   const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
 
   document.querySelectorAll("button").disabled = true;
-  loaderTitle.style.display = "inline-block";
+  loaderTitle.style.display = showLoader ? "inline-block" : "none";
 
   await setPersistent(todos);
 

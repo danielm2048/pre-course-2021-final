@@ -6,10 +6,11 @@ const priorities = document.querySelector("#priority-selector");
 const addButton = document.querySelector("#add-button");
 const updateButton = document.querySelector("#update-button");
 const deleteButton = document.querySelector("#delete-button");
+const deleteDoneButton = document.querySelector("#delete-done");
 
 const loading = document.querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
-const sortButtons = document.querySelector(".sort-buttons");
+const extraButtons = document.querySelector(".extra-buttons");
 
 let todos = [];
 let selectedTodo = null;
@@ -59,6 +60,10 @@ window.addEventListener("load", async () => {
 
   if (todos.length) {
     deleteButton.style.display = "inline-block";
+  }
+
+  if (todos.filter(todo => todo.done).length) {
+    deleteDoneButton.style.display = "inline-block";
   }
 
   loading.style.display = "none";
@@ -114,12 +119,16 @@ deleteButton.addEventListener("click", async () => {
   const answer = confirm("Are you sure you want to delete?");
 
   if (answer) {
-    await deleteTodo(selectedTodo ? selectedTodo[1] : selectedTodo);
+    await deleteTodo(selectedTodo ? selectedTodo[1] : -1);
 
     counter.textContent = todos.length;
 
     if (!todos.length) {
       deleteButton.style.display = "none";
+    }
+
+    if (!todos.filter(todo => todo.done).length) {
+      deleteDoneButton.style.display = "none";
     }
   }
 })
@@ -204,9 +213,20 @@ const updateTodo = async (priority, text) => {
 }
 
 // A function to delete a todo from the list and from the array
-const deleteTodo = async (index) => {
-  if (!index) {
-    todos = [];
+const deleteTodo = async (index, onlyDone = false) => {
+  let doneTodosToDelete = [];
+  if (index === -1) {
+    if (onlyDone) {
+      todos.forEach((todo, i) => {
+        if (todo.done) {
+          doneTodosToDelete.push(i);
+        }
+      });
+      todos = todos.filter(todo => !todo.done);
+    }
+    else {
+      todos = [];
+    }
   }
   else {
     todos.splice(index, 1);
@@ -214,9 +234,16 @@ const deleteTodo = async (index) => {
 
   await waitForPersistent();
 
-  if (!index) {
-    while (todoList.hasChildNodes()) {
-      todoList.removeChild(todoList.lastChild);
+  if (index === -1) {
+    if (onlyDone) {
+      for (let i = 0; i < doneTodosToDelete.length; i++) {
+        todoList.removeChild(todoList.querySelector(`#\\3${doneTodosToDelete[i]}`).parentNode);
+      }
+    }
+    else {
+      while (todoList.hasChildNodes()) {
+        todoList.removeChild(todoList.lastChild);
+      }
     }
   }
   else {
@@ -244,11 +271,22 @@ todoInput.addEventListener("keyup", (e) => {
   }
 });
 
-sortButtons.addEventListener("click", (e) => {
+extraButtons.addEventListener("click", async (e) => {
   const prop = e.target.dataset.prop;
   if (prop) {
     // Priority sort needs to be in DESC order
     sortList(prop, prop !== "priority");
+  }
+  else if (e.target.id === "delete-done") {
+    const answer = confirm("Are you sure you want to delete?");
+
+    if (answer) {
+      await deleteTodo(-1, true);
+
+      counter.textContent = todos.length;
+
+      deleteDoneButton.style.display = "none";
+    }
   }
 })
 
@@ -277,7 +315,14 @@ const sortList = (prop, direction = false) => {
 const toggleDone = async (index) => {
   todos[index].done = !todos[index].done;
 
-  await setPersistent(todos);
+  if (todos.filter(todo => todo.done).length) {
+    deleteDoneButton.style.display = "inline-block";
+  }
+  else {
+    deleteDoneButton.style.display = "none";
+  }
+
+  await waitForPersistent(false);
 }
 
 todoList.addEventListener("click", async (e) => {
