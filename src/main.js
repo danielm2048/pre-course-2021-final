@@ -138,7 +138,7 @@ const toggleDoubleClick = (e) => {
   if (e.target.className === "todo-container" || e.target.parentNode.className === "todo-container") {
     const todoContainer = e.target.className === "todo-container" ? e.target : e.target.parentNode;
     if (selectedTodo) {
-      selectedTodo[0].style.backgroundPosition = "0 -100%";
+      selectedTodo[0].style.backgroundPosition = "0 -300%";
 
       if (selectedTodo[1] !== todoContainer.id) {
         todoContainer.style.backgroundPosition = "70% 100%";
@@ -203,7 +203,7 @@ const updateTodo = async (priority, text) => {
   if (text) {
     selectedTodo[0].querySelector(".todo-text").textContent = text;
   }
-  selectedTodo[0].style.backgroundPosition = "0 -100%";
+  selectedTodo[0].style.backgroundPosition = "0 -300%";
 
   document.querySelector("#add-button").style.display = "inline-block";
   document.querySelector("#update-button").style.display = "none";
