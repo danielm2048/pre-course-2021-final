@@ -15,7 +15,7 @@ let todos = [];
 let selectedTodo = null;
 
 // This function creates a list item and returns it
-const addTodo = (dateString, priority, text, done = false, index = todos.length) => {
+const addTodo = (dateString, priority, text, done = false, index = todos.length - 1) => {
   const listItem = document.createElement("li");
 
   const todoContainer = document.createElement("div");

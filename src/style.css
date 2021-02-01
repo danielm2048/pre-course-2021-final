@@ -143,6 +143,11 @@ button {
 	filter: hue-rotate(320deg);
 }
 
+.todo-priority {
+	display: inline-block;
+	margin: 0 20px;
+}
+
 @media screen and (max-width: 768px) {
 	.main {
 		width: 100%;
@@ -165,11 +170,18 @@ button {
 	#text-input {
 		font-size: 14px;
 	}
-}
 
-.todo-priority {
-	display: inline-block;
-	margin: 0 20px;
+	.todo-container {
+		font-size: 12px;
+	}
+
+	.todo-priority {
+		margin: 0 10px;
+	}
+
+	.todo-text {
+		width: 50%;
+	}
 }
 
 .dimmed {
@@ -194,6 +206,12 @@ button {
 	animation-timing-function: linear;
 	animation-iteration-count: 1;
 	animation-fill-mode: forwards;
+}
+
+@media screen and (max-width: 768px) {
+	.crossed::after {
+		display: none;
+	}
 }
 
 @keyframes crossed {
@@ -226,7 +244,7 @@ button {
 	position: absolute;
 	display: block;
 	opacity: 0;
-	stroke: rgba(55, 215, 178, 0.5);
+	stroke: #4caf50;
 	fill: none;
 	stroke-dashoffset: 340;
 	stroke-dasharray: 360;
