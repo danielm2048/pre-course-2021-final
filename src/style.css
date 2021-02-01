@@ -39,6 +39,7 @@ button {
 	outline: none;
 }
 
+/*Color green for buttons */
 .success {
 	border-color: #4caf50;
 	color: green;
@@ -49,6 +50,7 @@ button {
 	color: white;
 }
 
+/*Color blue for buttons */
 .info {
 	border-color: #5fb6fc;
 	color: #3d88ee;
@@ -59,6 +61,7 @@ button {
 	color: white;
 }
 
+/*Color red for buttons */
 .danger {
 	border-color: #f44336;
 	color: red;
@@ -161,7 +164,7 @@ button {
 	left: 0;
 	width: 100%;
 	height: 2px;
-	background: rgb(211, 220, 227);
+	background: #d3dce3;
 	animation-name: crossed;
 	animation-duration: 0.5s;
 	animation-timing-function: linear;
