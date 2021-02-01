@@ -62,6 +62,10 @@ window.addEventListener("load", async () => {
 
   todos = await getPersistent();
 
+  if (todos.length) {
+    deleteButton.style.display = "inline-block";
+  }
+
   loading.style.display = "none";
   container.style.display = "block";
 
@@ -88,13 +92,16 @@ addButton.addEventListener("click", async () => {
       done: false
     });
 
-    counter.textContent++;
-
     todoInput.value = "";
     todoInput.focus();
 
     await waitForPersistent();
     todoList.appendChild(addTodo(dateString, priority, text));
+    counter.textContent++;
+
+    if (todos.length === 1) {
+      deleteButton.style.display = "inline-block";
+    }
   }
 });
 
@@ -115,6 +122,10 @@ deleteButton.addEventListener("click", async (e) => {
     await deleteTodo(selectedTodo ? selectedTodo[1] : selectedTodo);
 
     counter.textContent = todos.length;
+
+    if (!todos.length) {
+      deleteButton.style.display = "none";
+    }
   }
 })
 
@@ -126,28 +137,28 @@ const toggleDoubleClick = (e) => {
       selectedTodo[0].style.backgroundPosition = "0 -100%";
 
       if (selectedTodo[1] !== todoContainer.id) {
-        todoContainer.style.backgroundPosition = "80% 100%";
+        todoContainer.style.backgroundPosition = "70% 100%";
 
         document.querySelector("#add-button").style.display = "none";
         document.querySelector("#update-button").style.display = "inline-block";
-        document.querySelector("#delete-button").textContent = "Delete Todo";
+        document.querySelector("#delete-button").textContent = "Delete Todo 🗑️";
 
         selectedTodo = [todoContainer, todoContainer.id];
       }
       else {
         document.querySelector("#add-button").style.display = "inline-block";
         document.querySelector("#update-button").style.display = "none";
-        document.querySelector("#delete-button").textContent = "Delete All";
+        document.querySelector("#delete-button").textContent = "Delete All 🗑️";
 
         selectedTodo = null;
       }
     }
     else {
-      todoContainer.style.backgroundPosition = "80% 100%";
+      todoContainer.style.backgroundPosition = "70% 100%";
 
       document.querySelector("#add-button").style.display = "none";
       document.querySelector("#update-button").style.display = "inline-block";
-      document.querySelector("#delete-button").textContent = "Delete Todo";
+      document.querySelector("#delete-button").textContent = "Delete Todo 🗑️";
 
       selectedTodo = [todoContainer, todoContainer.id];
     }
@@ -173,7 +184,7 @@ const updateTodo = async (priority, text) => {
 
   document.querySelector("#add-button").style.display = "inline-block";
   document.querySelector("#update-button").style.display = "none";
-  document.querySelector("#delete-button").textContent = "Delete All";
+  document.querySelector("#delete-button").textContent = "Delete All 🗑️";
 
   selectedTodo = null;
 }
@@ -197,7 +208,7 @@ const deleteTodo = async (index) => {
 
   document.querySelector("#add-button").style.display = "inline-block";
   document.querySelector("#update-button").style.display = "none";
-  document.querySelector("#delete-button").textContent = "Delete All";
+  document.querySelector("#delete-button").textContent = "Delete All 🗑️";
 
   selectedTodo = null;
 };

@@ -38,33 +38,35 @@
             <div></div>
           </div>
         </div>
+        
         <section id="control-section">
           <div class="actions">
+            Number of todos:
             <div id="counter">0</div>
   
             <div class="sort-buttons">
-              <button id="sort-done" data-prop="done">Sort by done</button>
+              <button id="sort-done" class="info" data-prop="done">Sort by done ⬆️</button>
 
-              <button id="sort-button" data-prop="priority">Sort by priority</button>
+              <button id="sort-button" class="info" data-prop="priority">Sort by priority ⬇️</button>
 
-              <button id="sort-date" data-prop="date">Sort by date</button>
+              <button id="sort-date" class="info" data-prop="date">Sort by date ⬆️</button>
             </div>
           </div>
   
           <input type="text" id="text-input">
   
           <select id="priority-selector">
-            <option value="1">Very urgent! 🔥</option>
-            <option value="2">Important</option>
-            <option value="3">Finish by the end of this month</option>
-            <option value="4">Put it on the back burner</option>
-            <option value="5">Not that important</option>
+            <option value="1">P1 🔥</option>
+            <option value="2">P2</option>
+            <option value="3">P3</option>
+            <option value="4">P4</option>
+            <option value="5">P5</option>
           </select>
           
 
-          <button id="add-button">Add To Do</button>
-          <button id="update-button">Update To Do</button>
-          <button id="delete-button">Delete All</button>
+          <button id="add-button" class="success">Add To Do 📌</button>
+          <button id="update-button" class="info">Update To Do ✒️</button>
+          <button id="delete-button" class="danger">Delete All 🗑️</button>
         </section>
   
         <section id="view-section">
