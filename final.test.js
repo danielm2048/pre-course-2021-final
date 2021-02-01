@@ -14,12 +14,16 @@ const mockToDos = [
   {
     text: "first task input",
     priority: "1",
-    date: new Date(),
+    date: new Date("01.02.2021 20:20"),
+    dateString: "01.02.2021 20:20",
+    done: true
   },
   {
     text: "second task input",
     priority: "4",
-    date: new Date(),
+    date: new Date("01.02.2021 20:10"),
+    dateString: "01.02.2021 20:10",
+    done: false
   },
 ];
 const metadata = { id: "nvkdf48sd85jfnbvhfd72nd0", private: true };
@@ -194,6 +198,27 @@ describe(projectName, () => {
     expect(currentCounter).toBe("2");
   });
 
+  test("Can sort by date", async () => {
+    await nock("https://api.jsonbin.io/v3")
+      .get(/.*/)
+      .reply(200, mocks.toDoAddSecondResponse);
+
+    await page.goto(path, { waitUntil: "networkidle0" });
+    const mockToDo = mockToDos[1];
+
+    await page.click("#sort-date");
+    const elements = await page.$$(".todo-text");
+    const secondItem = await (
+      await elements[0].getProperty("innerText")
+    ).jsonValue();
+    const dateElements = await page.$$(".todo-created-at");
+    const secondItemDate = await (
+      await dateElements[0].getProperty("innerText")
+    ).jsonValue();
+    expect(secondItem).toBe(mockToDo.text);
+    expect(secondItemDate).toBe(mockToDo.dateString);
+  });
+
   test("Can sort by priority", async () => {
     await nock("https://api.jsonbin.io/v3")
       .get(/.*/)
@@ -213,6 +238,53 @@ describe(projectName, () => {
     ).jsonValue();
     expect(secondItem).toBe(mockToDo.text);
     expect(secondItemPriority).toBe(mockToDo.priority);
+  });
+
+  test("Can sort by done", async () => {
+    await nock("https://api.jsonbin.io/v3")
+      .get(/.*/)
+      .reply(200, mocks.toDoAddSecondResponse);
+
+    await page.goto(path, { waitUntil: "networkidle0" });
+    const mockToDo = mockToDos[1];
+
+    await page.click("#sort-done");
+    const elements = await page.$$(".todo-text");
+    const secondItem = await (
+      await elements[0].getProperty("innerText")
+    ).jsonValue();
+    const doneElements = await page.$$("input[type='checkbox']");
+    const secondItemDone = await (
+      await doneElements[0].getProperty("checked")
+    ).jsonValue();
+    expect(secondItem).toBe(mockToDo.text);
+    expect(secondItemDone).toBe(mockToDo.done);
+  });
+
+  test("Can double click to highlight todo", async () => {
+    await nock("https://api.jsonbin.io/v3")
+      .get(/.*/)
+      .reply(200, mocks.toDoAddSecondResponse);
+
+    await page.goto(path, { waitUntil: "networkidle0" });
+
+    await page.waitForSelector(".todo-container");
+
+    const elements = await page.$$(".todo-container");
+
+    await page.evaluate((firstItem) => {
+      const clickEvent = document.createEvent('MouseEvents');
+      clickEvent.initEvent('dblclick', true, true);
+      firstItem.dispatchEvent(clickEvent);
+    }, elements[0]);
+
+    const deleteButton = await page.$("#delete-button");
+
+    const deleteButtonText = await (
+      await deleteButton.getProperty("innerText")
+    ).jsonValue();
+
+    expect(deleteButtonText).toBe("Delete Todo 🗑️");
   });
 
   test("If data structure is correct in localStorage", async () => {
