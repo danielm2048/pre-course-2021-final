@@ -120,7 +120,6 @@ window.addEventListener("load", async () => {
       if (touchEndTime - touchStartTime >= 500) {
         toggleDoubleClick(e);
       }
-      touchStartTime = 0;
     }
 
     // Revert to normal
