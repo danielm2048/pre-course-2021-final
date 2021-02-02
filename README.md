@@ -20,6 +20,8 @@ Here is the link to the [Github Page](https://danielm2048.github.io/pre-course-2
 
 ## Bonus features
 
+- Adding or updating a todo can be accomplished by pressing Enter on the keyboard
+- Loading spinner when necessary
 - Sorting by finished("done") todos and by date
 - Deleting every todo using a single button
 - Double clicking a todo item highlights it:
@@ -27,6 +29,9 @@ Here is the link to the [Github Page](https://danielm2048.github.io/pre-course-2
   - Mobile users can highlight a todo by tapping and holding the todo item for half a second
 - You can check any todos you might have finished:
   - If you'll want to delete every finished todo you'll be able to do it also by using a single button
+- Only relevant buttons will show up
+- Animations for checking and highlighting a todo
+- Added tests for other sort buttons and double clicking
 
 ## Resources
 
