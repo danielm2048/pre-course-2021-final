@@ -105,6 +105,8 @@ window.addEventListener("load", async () => {
   // mobile users will have to hold any todo for half a second to highlight it!
   let touchStartTime = 0;
   todoList.addEventListener("touchstart", () => {
+    // Make sure tap won't highlight text
+    document.body.style.userSelect = "noselect";
     touchStartTime = new Date().getTime();
   });
   todoList.addEventListener("touchend", (e) => {
@@ -120,6 +122,9 @@ window.addEventListener("load", async () => {
       }
       touchStartTime = 0;
     }
+
+    // Revert to normal
+    document.body.style.userSelect = "auto";
   });
 
   // Execute onClick button function when the user releases the enter key
