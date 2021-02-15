@@ -9,6 +9,7 @@ const deleteButton = document.querySelector("#delete-button");
 const deleteDoneButton = document.querySelector("#delete-done");
 
 const loading = document.querySelector(".lds-roller");
+const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
 const extraButtons = document.querySelector(".extra-buttons");
 
@@ -16,30 +17,27 @@ let todos = [];
 let selectedTodo = null;
 
 // Make sure the todos load as the page loads
-window.addEventListener("load", async () => {
-  container.style.display = "none";
+window.addEventListener("load", () => {
+  getPersistent().then(data => {
+    todos = data;
 
-  todos = await getPersistent();
+    if (todos.length) {
+      deleteButton.style.display = "inline-block";
+    }
 
-  if (todos.length) {
-    deleteButton.style.display = "inline-block";
-  }
+    if (todos.filter(todo => todo.done).length) {
+      deleteDoneButton.style.display = "inline-block";
+    }
 
-  if (todos.filter(todo => todo.done).length) {
-    deleteDoneButton.style.display = "inline-block";
-  }
+    todos.forEach((todo, index) => {
+      todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
+    });
 
-  loading.style.display = "none";
-  container.style.display = "block";
-
-  todos.forEach((todo, index) => {
-    todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
+    counter.textContent = todos.length;
   });
 
-  counter.textContent = todos.length;
-
   // Handle clicking on the add button
-  addButton.addEventListener("click", async () => {
+  addButton.addEventListener("click", () => {
     if (todoInput.value) {
 
       const date = new Date();
@@ -58,43 +56,46 @@ window.addEventListener("load", async () => {
       todoInput.value = "";
       todoInput.focus();
 
-      await waitForPersistent();
-      todoList.appendChild(addTodo(dateString, priority, text));
-      counter.textContent++;
+      setPersistent(todos).then((status) => {
+        if (status) {
+          todoList.appendChild(addTodo(dateString, priority, text));
+          counter.textContent++;
 
-      if (todos.length === 1) {
-        deleteButton.style.display = "inline-block";
-      }
+          if (todos.length === 1) {
+            deleteButton.style.display = "inline-block";
+          }
+        }
+      });
     }
   });
 
   // Handle clicking on the update button
-  updateButton.addEventListener("click", async () => {
+  updateButton.addEventListener("click", () => {
     const priority = priorities.value;
     const text = todoInput.value;
 
-    await updateTodo(priority, text);
-
-    todoInput.value = "";
-    todoInput.focus();
+    updateTodo(priority, text).then(() => {
+      todoInput.value = "";
+      todoInput.focus();
+    });
   });
 
   // Handle clicking on the delete button
-  deleteButton.addEventListener("click", async () => {
+  deleteButton.addEventListener("click", () => {
     const answer = confirm("Are you sure you want to delete?");
 
     if (answer) {
-      await deleteTodo(selectedTodo ? selectedTodo[1] : -1);
+      deleteTodo(selectedTodo ? selectedTodo[1] : -1).then(() => {
+        counter.textContent = todos.length;
 
-      counter.textContent = todos.length;
+        if (!todos.length) {
+          deleteButton.style.display = "none";
+        }
 
-      if (!todos.length) {
-        deleteButton.style.display = "none";
-      }
-
-      if (!todos.filter(todo => todo.done).length) {
-        deleteDoneButton.style.display = "none";
-      }
+        if (!todos.filter(todo => todo.done).length) {
+          deleteDoneButton.style.display = "none";
+        }
+      })
     }
   });
 
@@ -151,17 +152,17 @@ window.addEventListener("load", async () => {
       const answer = confirm("Are you sure you want to delete?");
 
       if (answer) {
-        await deleteTodo(-1, true);
+        deleteTodo(-1, true).then(() => {
+          counter.textContent = todos.length;
 
-        counter.textContent = todos.length;
-
-        deleteDoneButton.style.display = "none";
+          deleteDoneButton.style.display = "none";
+        })
       }
     }
   });
 
   // Check if any checkmarks have been clicked
-  todoList.addEventListener("click", async (e) => {
+  todoList.addEventListener("click", (e) => {
     const index = e.target.dataset.index;
     if (index) {
       e.target.disabled = true;
@@ -171,9 +172,9 @@ window.addEventListener("load", async () => {
       document.querySelectorAll(".todo-text")[index].classList.toggle("crossed");
       document.querySelectorAll(".todo-text")[index].classList.toggle("dimmed");
 
-      await toggleDone(index);
-
-      e.target.disabled = false;
+      toggleDone(index).then(() => {
+        e.target.disabled = false;
+      })
     }
   });
 
@@ -251,29 +252,29 @@ window.addEventListener("load", async () => {
   }
 
   // A function to update a todo from the list and from the array
-  async function updateTodo(priority, text) {
+  function updateTodo(priority, text) {
     todos[selectedTodo[1]].priority = priority;
     if (text) {
       todos[selectedTodo[1]].text = text;
     }
 
-    await waitForPersistent();
+    return setPersistent(todos).then(() => {
+      selectedTodo[0].querySelector(".todo-priority").textContent = priority;
+      if (text) {
+        selectedTodo[0].querySelector(".todo-text").textContent = text;
+      }
+      selectedTodo[0].style.backgroundPosition = "0 -300%";
 
-    selectedTodo[0].querySelector(".todo-priority").textContent = priority;
-    if (text) {
-      selectedTodo[0].querySelector(".todo-text").textContent = text;
-    }
-    selectedTodo[0].style.backgroundPosition = "0 -300%";
+      document.querySelector("#add-button").style.display = "inline-block";
+      document.querySelector("#update-button").style.display = "none";
+      document.querySelector("#delete-button").textContent = "Delete All 🗑️";
 
-    document.querySelector("#add-button").style.display = "inline-block";
-    document.querySelector("#update-button").style.display = "none";
-    document.querySelector("#delete-button").textContent = "Delete All 🗑️";
-
-    selectedTodo = null;
+      selectedTodo = null;
+    })
   }
 
   // A function to delete a todo from the list and from the array
-  async function deleteTodo(index, onlyDone = false) {
+  function deleteTodo(index, onlyDone = false) {
     let doneTodosToDelete = [];
     let remainingTodos = [];
     if (index === -1) {
@@ -298,29 +299,29 @@ window.addEventListener("load", async () => {
       todos.splice(index, 1);
     }
 
-    await waitForPersistent();
-
-    if (index === -1) {
-      if (onlyDone) {
-        for (let i = 0; i < doneTodosToDelete.length; i++) {
-          todoList.removeChild(todoList.querySelector(`#\\3${doneTodosToDelete[i]}`).parentNode);
+    return setPersistent(todos).then(() => {
+      if (index === -1) {
+        if (onlyDone) {
+          for (let i = 0; i < doneTodosToDelete.length; i++) {
+            todoList.removeChild(todoList.querySelector(`#\\3${doneTodosToDelete[i]}`).parentNode);
+          }
+        }
+        else {
+          while (todoList.hasChildNodes()) {
+            todoList.removeChild(todoList.lastChild);
+          }
         }
       }
       else {
-        while (todoList.hasChildNodes()) {
-          todoList.removeChild(todoList.lastChild);
-        }
+        todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
+
+        document.querySelector("#add-button").style.display = "inline-block";
+        document.querySelector("#update-button").style.display = "none";
+        document.querySelector("#delete-button").textContent = "Delete All 🗑️";
+
+        selectedTodo = null;
       }
-    }
-    else {
-      todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
-
-      document.querySelector("#add-button").style.display = "inline-block";
-      document.querySelector("#update-button").style.display = "none";
-      document.querySelector("#delete-button").textContent = "Delete All 🗑️";
-
-      selectedTodo = null;
-    }
+    })
   };
 
   // A function to sort todo list by property
@@ -347,7 +348,7 @@ window.addEventListener("load", async () => {
   }
 
   // A function to toggle done in the todos array and to display the correct buttons
-  async function toggleDone(index) {
+  function toggleDone(index) {
     todos[index].done = !todos[index].done;
 
     if (todos.filter(todo => todo.done).length) {
@@ -357,7 +358,7 @@ window.addEventListener("load", async () => {
       deleteDoneButton.style.display = "none";
     }
 
-    await waitForPersistent(false);
+    return setPersistent(todos);
   }
 
   // A function to format dates in SQL format

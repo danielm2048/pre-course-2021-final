@@ -2,52 +2,62 @@ const API_KEY = "$2b$10$VnuEYMRRNgcZ.iBkOcV.VOxxEOQCVMganefJqn9bPvcpjTh/6KuBe"; 
 const API = "https://api.jsonbin.io/v3/b/6012ab509f55707f6dfd3565";
 const DB_NAME = "my-todo";
 
-// Gets data from persistent storage by the given key and returns it
-async function getPersistent(key = API_KEY) {
-  const response = await fetch(`${API}/latest`, {
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": key
-    }
+// XMLHttpRequest function
+function sendHttpRequest(method, url, data, showLoader) {
+  const promise = new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+
+    xhr.responseType = "json";
+
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("X-Master-Key", API_KEY);
+
+    xhr.upload.onprogress = () => {
+      if (data) {
+        document.querySelectorAll("button").disabled = true;
+        loaderTitle.style.display = showLoader ? "inline-block" : "none";
+      } else {
+        container.style.display = "none";
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 400) {
+        reject(xhr.response);
+      } else {
+        resolve(xhr.response);
+        if (data) {
+          loaderTitle.style.display = "none";
+          document.querySelectorAll("button").disabled = false;
+        } else {
+          loading.style.display = "none";
+          container.style.display = "block";
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject("Error!");
+    };
+
+    const body = JSON.stringify({ "my-todo": data });
+
+    xhr.send(body);
   });
-  if (response.ok) {
-    const bin = await response.json();
-    return bin.record[DB_NAME];
-  }
-  else {
-    console.log(response.text());
-  }
+  return promise;
+}
+
+// Gets data from persistent storage by the given key and returns it
+function getPersistent() {
+  return sendHttpRequest("GET", `${API}/latest`).then(
+    (res) => res.record[DB_NAME]
+  );
 }
 
 // Saves the given data into persistent storage by the given key.
-// Returns 'true' on success.
-async function setPersistent(data, key = API_KEY) {
-  const response = await fetch(API, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": key
-    },
-    body: JSON.stringify({ "my-todo": data })
-  });
-  if (response.ok) {
-    return true;
-  }
-  else {
-    console.log(response.text())
-  }
-}
-
-// A function for handling the wair for setPersistent
-async function waitForPersistent(showLoader = true) {
-  // Loader next to title
-  const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
-
-  document.querySelectorAll("button").disabled = true;
-  loaderTitle.style.display = showLoader ? "inline-block" : "none";
-
-  await setPersistent(todos);
-
-  loaderTitle.style.display = "none";
-  document.querySelectorAll("button").disabled = false;
+function setPersistent(data, showLoader = true) {
+  return sendHttpRequest("PUT", API, data, showLoader)
+    .then((res) => res.record[DB_NAME] !== null)
+    .catch((err) => console.log(err));
 }
