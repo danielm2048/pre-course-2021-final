@@ -9,6 +9,8 @@ const deleteButton = document.querySelector("#delete-button");
 const deleteDoneButton = document.querySelector("#delete-done");
 
 const loading = document.querySelector(".lds-roller");
+// Loader next to title
+const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
 const counter = document.querySelector("#counter");
 const extraButtons = document.querySelector(".extra-buttons");
 
@@ -17,26 +19,31 @@ let selectedTodo = null;
 
 // Make sure the todos load as the page loads
 window.addEventListener("load", async () => {
-  container.style.display = "none";
+  try {
+    container.style.display = "none";
 
-  todos = await getPersistent();
+    todos = await getTodos();
 
-  if (todos.length) {
-    deleteButton.style.display = "inline-block";
+    if (todos.length) {
+      deleteButton.style.display = "inline-block";
+    }
+
+    if (todos.filter(todo => todo.done).length) {
+      deleteDoneButton.style.display = "inline-block";
+    }
+
+    loading.style.display = "none";
+    container.style.display = "block";
+
+    todos.forEach((todo, index) => {
+      todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
+    });
+
+    counter.textContent = todos.length;
+  } catch (err) {
+    console.log(err);
+    alert("Can't load website at the moment... try again later!");
   }
-
-  if (todos.filter(todo => todo.done).length) {
-    deleteDoneButton.style.display = "inline-block";
-  }
-
-  loading.style.display = "none";
-  container.style.display = "block";
-
-  todos.forEach((todo, index) => {
-    todoList.appendChild(addTodo(todo.dateString, todo.priority, todo.text, todo.done, index));
-  });
-
-  counter.textContent = todos.length;
 
   // Handle clicking on the add button
   addButton.addEventListener("click", async () => {
@@ -47,24 +54,32 @@ window.addEventListener("load", async () => {
       const priority = priorities.value;
       const text = todoInput.value;
 
-      todos.push({
+      const newTodo = {
         date,
         dateString,
         priority,
         text,
         done: false
-      });
+      }
 
       todoInput.value = "";
       todoInput.focus();
 
-      await waitForPersistent();
-      todoList.appendChild(addTodo(dateString, priority, text));
-      counter.textContent++;
+      showSpinner();
+      const newTodoId = await createTodo(newTodo);
 
-      if (todos.length === 1) {
-        deleteButton.style.display = "inline-block";
+      if (newTodoId) {
+        newTodo.id = newTodoId;
+        todos.push(newTodo);
+
+        todoList.appendChild(addTodo(dateString, priority, text));
+        counter.textContent++;
+
+        if (todos.length === 1) {
+          deleteButton.style.display = "inline-block";
+        }
       }
+      hideSpinner();
     }
   });
 
@@ -154,8 +169,6 @@ window.addEventListener("load", async () => {
         await deleteTodo(-1, true);
 
         counter.textContent = todos.length;
-
-        deleteDoneButton.style.display = "none";
       }
     }
   });
@@ -166,12 +179,17 @@ window.addEventListener("load", async () => {
     if (index) {
       e.target.disabled = true;
 
-      document.querySelectorAll(".todo-created-at")[index].classList.toggle("dimmed");
-      document.querySelectorAll(".todo-priority")[index].classList.toggle("dimmed");
-      document.querySelectorAll(".todo-text")[index].classList.toggle("crossed");
-      document.querySelectorAll(".todo-text")[index].classList.toggle("dimmed");
+      const res = await toggleDone(index);
 
-      await toggleDone(index);
+      if (res) {
+        document.querySelectorAll(".todo-created-at")[index].classList.toggle("dimmed");
+        document.querySelectorAll(".todo-priority")[index].classList.toggle("dimmed");
+        document.querySelectorAll(".todo-text")[index].classList.toggle("crossed");
+        document.querySelectorAll(".todo-text")[index].classList.toggle("dimmed");
+      }
+      else {
+        e.preventDefault();
+      }
 
       e.target.disabled = false;
     }
@@ -252,68 +270,20 @@ window.addEventListener("load", async () => {
 
   // A function to update a todo from the list and from the array
   async function updateTodo(priority, text) {
-    todos[selectedTodo[1]].priority = priority;
-    if (text) {
-      todos[selectedTodo[1]].text = text;
-    }
+    showSpinner();
+    const res = await updateSingleTodo(todos[selectedTodo[1]].id);
 
-    await waitForPersistent();
-
-    selectedTodo[0].querySelector(".todo-priority").textContent = priority;
-    if (text) {
-      selectedTodo[0].querySelector(".todo-text").textContent = text;
-    }
-    selectedTodo[0].style.backgroundPosition = "0 -300%";
-
-    document.querySelector("#add-button").style.display = "inline-block";
-    document.querySelector("#update-button").style.display = "none";
-    document.querySelector("#delete-button").textContent = "Delete All 🗑️";
-
-    selectedTodo = null;
-  }
-
-  // A function to delete a todo from the list and from the array
-  async function deleteTodo(index, onlyDone = false) {
-    let doneTodosToDelete = [];
-    let remainingTodos = [];
-    if (index === -1) {
-      if (onlyDone) {
-        // Get indices of done todos to remove them later
-        // Get the other todos and put them in todos
-        todos.forEach((todo, i) => {
-          if (todo.done) {
-            doneTodosToDelete.push(i);
-          }
-          else {
-            remainingTodos.push(todo);
-          }
-        });
-        todos = remainingTodos;
+    if (res) {
+      todos[selectedTodo[1]].priority = priority;
+      if (text) {
+        todos[selectedTodo[1]].text = text;
       }
-      else {
-        todos = [];
-      }
-    }
-    else {
-      todos.splice(index, 1);
-    }
 
-    await waitForPersistent();
-
-    if (index === -1) {
-      if (onlyDone) {
-        for (let i = 0; i < doneTodosToDelete.length; i++) {
-          todoList.removeChild(todoList.querySelector(`#\\3${doneTodosToDelete[i]}`).parentNode);
-        }
+      selectedTodo[0].querySelector(".todo-priority").textContent = priority;
+      if (text) {
+        selectedTodo[0].querySelector(".todo-text").textContent = text;
       }
-      else {
-        while (todoList.hasChildNodes()) {
-          todoList.removeChild(todoList.lastChild);
-        }
-      }
-    }
-    else {
-      todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
+      selectedTodo[0].style.backgroundPosition = "0 -300%";
 
       document.querySelector("#add-button").style.display = "inline-block";
       document.querySelector("#update-button").style.display = "none";
@@ -321,6 +291,70 @@ window.addEventListener("load", async () => {
 
       selectedTodo = null;
     }
+    hideSpinner();
+  }
+
+  // A function to delete a todo from the list and from the array
+  async function deleteTodo(index, onlyDone = false) {
+    let doneTodosToDelete = [];
+    let remainingTodos = [];
+    let res = null;
+
+    showSpinner();
+    if (index === -1) {
+      if (onlyDone) {
+        res = await deleteDoneTodos();
+      }
+      else {
+        res = await deleteTodos();
+      }
+    }
+    else {
+      res = await deleteSingleTodo(todos[selectedTodo[1]].id);
+    }
+
+    if (res) {
+      if (index === -1) {
+        if (onlyDone) {
+          // Get indices of done todos to remove them later
+          // Get the other todos and put them in todos
+          todos.forEach((todo, i) => {
+            if (todo.done) {
+              doneTodosToDelete.push(i);
+            }
+            else {
+              remainingTodos.push(todo);
+            }
+          });
+          todos = remainingTodos;
+
+          for (let i = 0; i < doneTodosToDelete.length; i++) {
+            todoList.removeChild(todoList.querySelector(`#\\3${doneTodosToDelete[i]}`).parentNode);
+          }
+
+          deleteDoneButton.style.display = "none";
+        }
+        else {
+          todos = [];
+
+          while (todoList.hasChildNodes()) {
+            todoList.removeChild(todoList.lastChild);
+          }
+        }
+      }
+      else {
+        todos.splice(index, 1);
+
+        todoList.removeChild(todoList.querySelector(`#\\3${index}`).parentNode);
+
+        document.querySelector("#add-button").style.display = "inline-block";
+        document.querySelector("#update-button").style.display = "none";
+        document.querySelector("#delete-button").textContent = "Delete All 🗑️";
+
+        selectedTodo = null;
+      }
+    }
+    hideSpinner();
   };
 
   // A function to sort todo list by property
@@ -348,24 +382,33 @@ window.addEventListener("load", async () => {
 
   // A function to toggle done in the todos array and to display the correct buttons
   async function toggleDone(index) {
+    showSpinner();
     todos[index].done = !todos[index].done;
+    const res = await updateSingleTodo(todos[index]);
 
-    if (todos.filter(todo => todo.done).length) {
-      deleteDoneButton.style.display = "inline-block";
+    if (res) {
+      if (todos.filter(todo => todo.done).length) {
+        deleteDoneButton.style.display = "inline-block";
+      }
+      else {
+        deleteDoneButton.style.display = "none";
+      }
     }
     else {
-      deleteDoneButton.style.display = "none";
+      // revert back to undone if updating fails
+      todos[index].done = !todos[index].done;
     }
+    hideSpinner();
 
-    await waitForPersistent(false);
+    return res;
   }
 
   // A function to format dates in SQL format
   function formatDate(date) {
-    const month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth();
-    const day = date.getDate() < 9 ? "0" + (date.getDate() + 1) : date.getDate();
-    const hour = date.getHours() < 9 ? "0" + (date.getHours() + 1) : date.getHours();
-    const minute = date.getMinutes() < 9 ? "0" + (date.getMinutes() + 1) : date.getMinutes();
+    const month = date.getMonth() <= 9 ? "0" + (date.getMonth() + 1) : date.getMonth();
+    const day = date.getDate() <= 9 ? "0" + (date.getDate() + 1) : date.getDate();
+    const hour = date.getHours() <= 9 ? "0" + (date.getHours() + 1) : date.getHours();
+    const minute = date.getMinutes() <= 9 ? "0" + (date.getMinutes() + 1) : date.getMinutes();
     return `${date.getFullYear()}-${month}-${day} ${hour}:${minute}`;
   }
 

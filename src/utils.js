@@ -1,53 +1,160 @@
-const API_KEY = "$2b$10$VnuEYMRRNgcZ.iBkOcV.VOxxEOQCVMganefJqn9bPvcpjTh/6KuBe"; // Assign this variable to your JSONBIN.io API key if you choose to use it.
-const API = "https://api.jsonbin.io/v3/b/6012ab509f55707f6dfd3565";
-const DB_NAME = "my-todo";
+const API = "http://localhost:5000/api/b";
 
-// Gets data from persistent storage by the given key and returns it
-async function getPersistent(key = API_KEY) {
-  const response = await fetch(`${API}/latest`, {
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": key
+// Gets every todo from the api
+async function getTodos() {
+  try {
+    const response = await fetch(API, {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      const todos = await response.json();
+      return todos;
     }
-  });
-  if (response.ok) {
-    const bin = await response.json();
-    return bin.record[DB_NAME];
-  }
-  else {
-    console.log(response.text());
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
   }
 }
 
-// Saves the given data into persistent storage by the given key.
-// Returns 'true' on success.
-async function setPersistent(data, key = API_KEY) {
-  const response = await fetch(API, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": key
-    },
-    body: JSON.stringify({ "my-todo": data })
-  });
-  if (response.ok) {
-    return true;
-  }
-  else {
-    console.log(response.text())
+// Creates a todo and sends it to the api
+async function createTodo(body) {
+  try {
+    const response = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body)
+    });
+    if (response.ok) {
+      const newTodoId = await response.text();
+      return newTodoId;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't create todo...");
   }
 }
 
-// A function for handling the wair for setPersistent
-async function waitForPersistent(showLoader = true) {
-  // Loader next to title
-  const loaderTitle = document.querySelector(".title").querySelector(".lds-roller");
+// Deletes every todo
+async function deleteTodos() {
+  try {
+    const response = await fetch(API, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      return true;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't delete todos...");
+  }
+}
 
+// Gets a single todo from the api
+async function getSingleTodo(id) {
+  try {
+    const response = await fetch(`${API}/${id}`, {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      const todo = await response.json();
+      return todo;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't get todo...");
+  }
+}
+
+// Updates a single todo and sends it to the api
+async function updateSingleTodo(body) {
+  try {
+    const response = await fetch(`${API}/${body.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body)
+    });
+    if (response.ok) {
+      return true;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't update todo...");
+  }
+}
+
+// Deletes a single todo
+async function deleteSingleTodo(id) {
+  try {
+    const response = await fetch(`${API}/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      return true;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't delete todo...");
+  }
+}
+
+// Deletes every done todo
+async function deleteDoneTodos() {
+  try {
+    const response = await fetch(`${API}/done`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      return true;
+    }
+    else {
+      throw new Error(response.statusText);
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Can't delete done todos...");
+  }
+}
+
+function showSpinner() {
   document.querySelectorAll("button").disabled = true;
-  loaderTitle.style.display = showLoader ? "inline-block" : "none";
+  loaderTitle.style.display = "inline-block";
+}
 
-  await setPersistent(todos);
-
+function hideSpinner() {
   loaderTitle.style.display = "none";
   document.querySelectorAll("button").disabled = false;
 }
